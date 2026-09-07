@@ -164,7 +164,7 @@ homeRoutes.get('/', async (c) => {
       heroBanners.push(r.banner_image_url || '');
       // No manually-saved logo on this slide — fall back to the same TMDB
       // clear-logo lookup the auto pool uses, rather than showing nothing.
-      const logo = r.logo_image_url || (await mal.getTitleLogo(anime.title_english || anime.title).catch(() => ''));
+      const logo = r.logo_image_url || (await mal.getTitleLogo(anime.mal_id, anime.title_english || anime.title).catch(() => ''));
       heroLogos.push(logo);
     }
   }
@@ -177,8 +177,8 @@ homeRoutes.get('/', async (c) => {
     // there is one, matching Anivexa's mobile behaviour — via a <picture>
     // breakpoint swap, no JS needed.
     [heroBanners, heroLogos] = await Promise.all([
-      Promise.all(heroPool.map((a) => mal.getLocalAnimeBanner(a.mal_id))),
-      Promise.all(heroPool.map((a) => mal.getTitleLogo(a.title_english || a.title))),
+      Promise.all(heroPool.map(async (a) => (await mal.getLocalAnimeBannerInfo(a.mal_id))?.image_url || a.banner_image || '')),
+      Promise.all(heroPool.map((a) => mal.getTitleLogo(a.mal_id, a.title_english || a.title))),
     ]);
   }
   const heroCovers = await Promise.all(heroPool.map((a) => mal.getLocalAnimeImage(a.mal_id)));

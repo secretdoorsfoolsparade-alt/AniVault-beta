@@ -39,7 +39,7 @@ function isValidUrl(u: string): boolean {
 }
 
 async function nextDisplayOrder(db: any): Promise<number> {
-  const row = await db.fetchOne<{ mx: number | null }>('SELECT MAX(display_order) as mx FROM home_hero_banners');
+  const row = await db.fetchOne('SELECT MAX(display_order) as mx FROM home_hero_banners') as { mx: number | null } | null;
   return (row?.mx ?? 0) + 1;
 }
 
@@ -105,7 +105,7 @@ adminHomeBannersRoutes.on(['GET', 'POST'], '/admin/home_banners.php', async (c) 
           title = fetched.data.title_english || fetched.data.title || '';
         }
         if (title) {
-          logoUrl = await mal.getTitleLogo(title).catch(() => '');
+          logoUrl = await mal.getTitleLogo(animeId, title).catch(() => '');
         }
 
         const order = await nextDisplayOrder(db);

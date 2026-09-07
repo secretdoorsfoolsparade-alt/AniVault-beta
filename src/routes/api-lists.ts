@@ -242,7 +242,7 @@ apiListRoutes.post('/api/watch_history.php', async (c) => {
       if (duration > 0) {
         const pct = watchTime / duration;
         const totalEpsParam = parseInt(body.total_eps ?? '0', 10) || 0;
-        await AnimeTracker.autoTrackProgress(db, userId, animeId, epNum, pct, totalEpsParam, animeTitle, animeImage);
+        await AnimeTracker.autoTrackProgress(db, userId!, animeId, epNum, pct, totalEpsParam, animeTitle, animeImage);
       }
     } else {
       const existing = await db.fetchOne<{ id: number }>(

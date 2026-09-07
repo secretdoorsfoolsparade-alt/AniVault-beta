@@ -7,6 +7,26 @@ import { Db } from './db';
 
 const COOKIE_NAME = 'av_session';
 
+let sessionsTableReady: Promise<void> | null = null;
+
+async function ensureSessionsTable(db: Db): Promise<void> {
+  if (!sessionsTableReady) {
+    sessionsTableReady = db.query(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        user_id INTEGER NULL,
+        data TEXT NOT NULL DEFAULT '{}',
+        expires_at INTEGER NOT NULL,
+        created_at INTEGER NOT NULL
+      )
+    `).then(() => undefined).catch((error) => {
+      sessionsTableReady = null;
+      throw error;
+    });
+  }
+  await sessionsTableReady;
+}
+
 export interface SessionData {
   username?: string;
   role?: string;
@@ -38,6 +58,7 @@ export class Session {
   }
 
   static async load(c: Context, db: Db, lifetimeSeconds: number): Promise<Session> {
+    await ensureSessionsTable(db);
     const cookieId = getCookie(c, COOKIE_NAME);
     if (cookieId) {
       const row = await db.fetchOne<{ id: string; user_id: number | null; data: string; expires_at: number }>(
